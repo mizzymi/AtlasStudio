@@ -1,0 +1,179 @@
+@use "@/styles/variables" as *;
+@use "@/styles/mixins" as *;
+
+.hero {
+  position: relative;
+  min-height: 80vh;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  text-align: center;
+}
+.heroBg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+.heroContent {
+  position: relative;
+  padding: 3rem;
+  max-width: 820px;
+}
+.ctaBtn {
+  @include btn;
+  background: linear-gradient(135deg, $primary, $secondary);
+  color: #fff;
+  box-shadow: $shadow;
+}
+
+.section {
+  padding: 5rem 1rem;
+}
+.container {
+  @include container(1200px);
+}
+.center {
+  text-align: center;
+}
+.subtitle {
+  color: #6b7280;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+.card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: $shadow;
+}
+
+.featureIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, $primary, $secondary);
+  color: #fff;
+  margin: 0 auto 1rem;
+}
+
+.imageText {
+  @extend .section;
+}
+.imageTextGrid {
+  @include container(1200px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+.imageRight {
+  direction: rtl;
+}
+.imageRight > * {
+  direction: ltr;
+}
+.image {
+  width: 100%;
+  border-radius: 16px;
+  box-shadow: $shadow;
+}
+
+.contactForm {
+  max-width: 620px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: $shadow;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.input {
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.pricingGrid {
+  @extend .grid;
+}
+.planHighlight {
+  outline: 3px solid $primary;
+  transform: translateY(-4px);
+}
+.price {
+  font-size: 2.25rem;
+  color: $primary;
+  font-weight: 800;
+}
+.ul {
+  list-style: none;
+  padding: 0;
+}
+.ul li::before {
+  content: "✓";
+  color: #16a34a;
+  font-weight: 700;
+  margin-right: 0.5rem;
+}
+
+.carousel {
+  @extend .section;
+  background: #f0f4f8;
+  text-align: center;
+}
+.carouselContainer {
+  position: relative;
+  max-width: 900px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: $shadow;
+}
+.carouselTrack {
+  display: flex;
+  transition: transform 0.5s ease;
+}
+.slide {
+  flex: 0 0 100%;
+}
+.slide img {
+  display: block;
+  width: 100%;
+}
+.carouselBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.85);
+  border: 0;
+  border-radius: 999px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+}
+.carouselBtnPrev {
+  left: 1rem;
+}
+.carouselBtnNext {
+  right: 1rem;
+}
+
+@media (max-width: 768px) {
+  .imageTextGrid {
+    grid-template-columns: 1fr;
+  }
+}

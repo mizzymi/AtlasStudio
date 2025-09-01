@@ -1,0 +1,56 @@
+.panel {
+  width: 320px;
+  background: #fff;
+  border-left: 1px solid #e5e7eb;
+  height: 100%;
+  overflow: auto;
+}
+.header {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.group {
+  padding: 1rem;
+  display: grid;
+  gap: 0.5rem;
+}
+.label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+.input,
+.textarea,
+.select {
+  padding: 0.6rem 0.7rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+.small {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+.row {
+  display: flex;
+  gap: 0.5rem;
+}
+.itemCard {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.6rem;
+}
+.btn {
+  padding: 0.5rem 0.6rem;
+  border: 0;
+  border-radius: 8px;
+  background: #3b82f6;
+  color: #fff;
+  cursor: pointer;
+}
+.remove {
+  background: #ef4444;
+}

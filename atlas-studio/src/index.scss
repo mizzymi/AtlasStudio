@@ -1,0 +1,13 @@
+@use "./styles/variables" as *;
+@use "./styles/mixins" as *;
+@use "./styles/global";
+
+:root {
+  --radius: 16px;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}

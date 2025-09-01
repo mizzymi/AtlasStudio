@@ -1,0 +1,168 @@
+{
+  "showExtraDetails": false,
+  "commands": [
+    {
+      "name": "component",
+      "description": "this command will create a folder with a tsx and their scss linked and a folder for tests.",
+      "startingPath": ["src", "components"],
+      "scaffold": [
+        {
+          "type": "folder",
+          "name": "|SPECIAL|",
+          "content": [
+            {
+              "type": "folder",
+              "name": "__test__",
+              "content": []
+            },
+            {
+              "type": "file",
+              "name": "|SPECIAL|.module.scss",
+              "content": ""
+            },
+            {
+              "type": "file",
+              "name": "|SPECIAL|.tsx",
+              "content": "import './|SPECIAL|.module.scss'\n\nexport function |SPECIAL|({}) {\n  return (\n    <>\n\n    </>\n  )\n\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "block",
+      "description": "this command will create a folder with a tsx and their scss linked and a folder for tests.",
+      "startingPath": ["src", "components", "blocks"],
+      "scaffold": [
+        {
+          "type": "folder",
+          "name": "|SPECIAL|",
+          "content": [
+            {
+              "type": "folder",
+              "name": "__test__",
+              "content": []
+            },
+            {
+              "type": "file",
+              "name": "|SPECIAL|.module.scss",
+              "content": ""
+            },
+            {
+              "type": "file",
+              "name": "|SPECIAL|.tsx",
+              "content": "import './|SPECIAL|.module.scss'\n\nexport function |SPECIAL|({}) {\n  return (\n    <>\n\n    </>\n  )\n\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "hook",
+      "description": "Crea una carpeta con un hook de TypeScript y un test básico.",
+      "startingPath": ["src", "hooks"],
+      "scaffold": [
+        {
+          "type": "folder",
+          "name": "use|SPECIAL|",
+          "content": [
+            {
+              "type": "folder",
+              "name": "__test__",
+              "content": [
+                {
+                  "type": "file",
+                  "name": "use|SPECIAL|.test.ts",
+                  "content": "import { describe, it, expect } from 'vitest'\nimport { use|SPECIAL| } from '../|SPECIAL|'\n\ndescribe('use|SPECIAL|', () => {\n  it('should be defined', () => {\n    expect(use|SPECIAL|).toBeDefined()\n  })\n})\n"
+                }
+              ]
+            },
+            {
+              "type": "file",
+              "name": "use|SPECIAL|.ts",
+              "content": "import { useState, useEffect, useRef, useCallback, useMemo } from 'react'\n\nexport type |SPECIAL|Options = {\n  // define options here\n}\n\nexport function use|SPECIAL|(options: |SPECIAL|Options = {}) {\n  const [state, setState] = useState<unknown>(null)\n\n  return { state, setState }\n}\n\nexport default use|SPECIAL|\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "page",
+      "description": "Crea una página (TSX) con su SCSS y test. Útil para estructuras tipo React Router o Next.js (ajusta a tu proyecto).",
+      "startingPath": ["src", "pages"],
+      "scaffold": [
+        {
+          "type": "folder",
+          "name": "|SPECIAL|",
+          "content": [
+            {
+              "type": "folder",
+              "name": "__test__",
+              "content": [
+                {
+                  "type": "file",
+                  "name": "|SPECIAL|.test.tsx",
+                  "content": "import { render, screen } from '@testing-library/react'\nimport |SPECIAL|Page from '../|SPECIAL|'\n\ntest('renders page title', () => {\n  render(<|SPECIAL|Page />)\n  expect(screen.getByRole('heading', { name: /|SPECIAL|/i })).toBeInTheDocument()\n})\n"
+                }
+              ]
+            },
+            {
+              "type": "file",
+              "name": "|SPECIAL|.module.scss",
+              "content": ".|SPECIAL|-page {\n  // estilos de la página\n}\n"
+            },
+            {
+              "type": "file",
+              "name": "|SPECIAL|.tsx",
+              "content": "import './|SPECIAL|.module.scss'\n\nexport default function |SPECIAL|Page() {\n  return (\n    <main className='|SPECIAL|-page'>\n      <h1>|SPECIAL|</h1>\n    </main>\n  )\n}\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reducer",
+      "description": "Crea un slice de Redux Toolkit con thunks, selectores, índice y tests.",
+      "startingPath": ["src", "redux", "slices"],
+      "scaffold": [
+        {
+          "type": "folder",
+          "name": "|SPECIAL|",
+          "content": [
+            {
+              "type": "folder",
+              "name": "__test__",
+              "content": [
+                {
+                  "type": "file",
+                  "name": "|SPECIAL|.slice.test.ts",
+                  "content": "import { describe, it, expect } from 'vitest'\nimport reducer, { setData, reset } from '../|SPECIAL|.slice'\n\ndescribe('|SPECIAL| slice', () => {\n  it('handles setData', () => {\n    const state = reducer(undefined, setData(123))\n    expect(state.data).toBe(123)\n  })\n\n  it('handles reset', () => {\n    const preloaded = { data: 1, loading: true, error: 'x' }\n    // @ts-expect-error allow partial for test\n    const state = reducer(preloaded, reset())\n    expect(state.loading).toBe(false)\n    expect(state.error).toBeNull()\n  })\n})\n"
+                }
+              ]
+            },
+            {
+              "type": "file",
+              "name": "|SPECIAL|.slice.ts",
+              "content": "import { createSlice, PayloadAction } from '@reduxjs/toolkit'\nimport { fetch|SPECIAL| } from './thunks'\n\nexport interface |SPECIAL|State {\n  data: unknown\n  loading: boolean\n  error: string | null\n}\n\nconst initialState: |SPECIAL|State = {\n  data: null,\n  loading: false,\n  error: null,\n}\n\nconst |SPECIAL|Slice = createSlice({\n  name: '|SPECIAL|',\n  initialState,\n  reducers: {\n    setData(state, action: PayloadAction<unknown>) {\n      state.data = action.payload\n    },\n    setLoading(state, action: PayloadAction<boolean>) {\n      state.loading = action.payload\n    },\n    setError(state, action: PayloadAction<string | null>) {\n      state.error = action.payload\n    },\n    reset() {\n      return initialState\n    },\n  },\n  extraReducers: (builder) => {\n    builder\n      .addCase(fetch|SPECIAL|.pending, (state) => {\n        state.loading = true\n        state.error = null\n      })\n      .addCase(fetch|SPECIAL|.fulfilled, (state, action: PayloadAction<unknown>) => {\n        state.loading = false\n        state.data = action.payload\n      })\n      .addCase(fetch|SPECIAL|.rejected, (state, action) => {\n        state.loading = false\n        state.error = action.error.message || 'Unknown error'\n      })\n  },\n})\n\nexport const { setData, setLoading, setError, reset } = |SPECIAL|Slice.actions\nexport default |SPECIAL|Slice.reducer\n"
+            },
+            {
+              "type": "file",
+              "name": "selectors.ts",
+              "content": "import { |SPECIAL|State } from './|SPECIAL|.slice'\n\nexport const select|SPECIAL| = (state: { |SPECIAL|: |SPECIAL|State }) => state.|SPECIAL|\nexport const select|SPECIAL|Data = (state: { |SPECIAL|: |SPECIAL|State }) => state.|SPECIAL|.data\nexport const select|SPECIAL|Loading = (state: { |SPECIAL|: |SPECIAL|State }) => state.|SPECIAL|.loading\nexport const select|SPECIAL|Error = (state: { |SPECIAL|: |SPECIAL|State }) => state.|SPECIAL|.error\n"
+            },
+            {
+              "type": "file",
+              "name": "thunks.ts",
+              "content": "import { createAsyncThunk } from '@reduxjs/toolkit'\n\nexport const fetch|SPECIAL| = createAsyncThunk(\n  '|SPECIAL|/fetch',\n  async (_: void, _thunkApi) => {\n    // TODO: implement async logic\n    return null\n  }\n)\n"
+            },
+            {
+              "type": "file",
+              "name": "index.ts",
+              "content": "export { default as |SPECIAL|Reducer, setData, setLoading, setError, reset } from './|SPECIAL|.slice'\nexport * from './selectors'\nexport * from './thunks'\nexport type { |SPECIAL|State } from './|SPECIAL|.slice'\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
