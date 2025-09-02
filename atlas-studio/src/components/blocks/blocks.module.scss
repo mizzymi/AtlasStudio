@@ -27,11 +27,10 @@
 }
 .ctaBtn {
   @include btn;
-  background: linear-gradient(135deg, $primary, $secondary);
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
   color: #fff;
   box-shadow: $shadow;
 }
-
 .section {
   padding: 5rem 1rem;
 }
@@ -64,7 +63,7 @@
   border-radius: 14px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, $primary, $secondary);
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
   color: #fff;
   margin: 0 auto 1rem;
 }
@@ -107,17 +106,19 @@
   border: 1px solid #e5e7eb;
   border-radius: 12px;
 }
-
 .pricingGrid {
   @extend .grid;
 }
 .planHighlight {
-  outline: 3px solid $primary;
+  outline: 3px solid var(--primary);
   transform: translateY(-4px);
+}
+.pricing{
+  background: color-mix(in srgb, var(--secondary) 20%, transparent);
 }
 .price {
   font-size: 2.25rem;
-  color: $primary;
+  color: var(--primary);
   font-weight: 800;
 }
 .ul {

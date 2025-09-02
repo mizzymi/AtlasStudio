@@ -1,143 +1,212 @@
+// src/hooks/useExport.ts
 import JSZip from 'jszip';
+import { useSelector } from 'react-redux';
 import type { Block } from '@/types/blocks';
+import { RootState } from '@/redux/store';
+import { selectblocksData } from '@/redux/slices/blocks';
 
-const escapeHtml = (s?: string) => (s ?? '').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+// Pequeño helper para evitar XSS en el HTML exportado
+const escapeHtml = (s?: string) => (s ?? '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-export const generateHTML = (blocks: Block[], siteName = 'Mi Sitio') => {
-  const blocksHTML = blocks.map((block) => {
-    switch (block.type) {
-      case 'hero':
-        return `
-<section class="hero" style="--bg:url('${escapeHtml(block.content.backgroundImage)}')">
+// ========================= HTML =========================
+export const generateHTML = (blocks: Block[] = [], siteName = 'Mi Sitio', lang = 'es') => {
+  const list = Array.isArray(blocks) ? blocks : [];
+
+  const blocksHTML = list
+    .map((block) => {
+      switch (block.type) {
+        case 'hero':
+          return `
+<section class="hero" style="--bg:url('${escapeHtml((block.content as any).backgroundImage)}')">
   <div class="hero__overlay"></div>
   <div class="hero__content">
-    <h1>${escapeHtml(block.content.title)}</h1>
-    <p>${escapeHtml(block.content.subtitle)}</p>
-    <button>${escapeHtml(block.content.buttonText)}</button>
+    <h1>${escapeHtml((block.content as any).title)}</h1>
+    <p>${escapeHtml((block.content as any).subtitle)}</p>
+    ${(block.content as any).buttonText
+              ? `<a class="btn" href="${escapeHtml((block.content as any).buttonUrl) || '#'}">${escapeHtml((block.content as any).buttonText)}</a>`
+              : ''
+            }
   </div>
-</section>`;
-      case 'features': {
-        const items = (block.content.features ?? []).map(f => `
+</section>`.trim();
+
+        case 'features': {
+          const items = ((block.content as any).features ?? [])
+            .map(
+              (f: any) => `
   <div class="feature">
     <div class="feature__icon">★</div>
     <h3>${escapeHtml(f.title)}</h3>
     <p>${escapeHtml(f.description)}</p>
-  </div>`).join('');
-        return `
+  </div>`.trim()
+            )
+            .join('');
+          return `
 <section class="features">
-  <h2>${escapeHtml(block.content.title)}</h2>
-  <p class="features__subtitle">${escapeHtml(block.content.subtitle)}</p>
+  <h2>${escapeHtml((block.content as any).title)}</h2>
+  <p class="features__subtitle">${escapeHtml((block.content as any).subtitle)}</p>
   <div class="features__grid">${items}</div>
-</section>`;
-      }
-      case 'text':
-        return `
+</section>`.trim();
+        }
+
+        case 'text':
+          return `
 <section class="text">
-  <h2>${escapeHtml(block.content.title)}</h2>
-  <p>${escapeHtml(block.content.text)}</p>
-</section>`;
-      case 'contact':
-        return `
+  <h2>${escapeHtml((block.content as any).title)}</h2>
+  <p>${escapeHtml((block.content as any).text)}</p>
+</section>`.trim();
+
+        case 'contact':
+          return `
 <section class="contact">
-  <h2>${escapeHtml(block.content.title)}</h2>
-  <p>${escapeHtml(block.content.subtitle)}</p>
+  <h2>${escapeHtml((block.content as any).title)}</h2>
+  <p>${escapeHtml((block.content as any).subtitle)}</p>
   <form>
     <input type="text" placeholder="Tu nombre" />
     <input type="email" placeholder="tu@email.com" />
     <textarea placeholder="Tu mensaje..."></textarea>
-    <button type="submit">Enviar Mensaje</button>
+    <button type="submit" class="btn">Enviar Mensaje</button>
   </form>
-</section>`;
-      case 'call-to-action':
-        return `
+</section>`.trim();
+
+        case 'call-to-action':
+          return `
 <section class="cta">
-  <h2>${escapeHtml(block.content.title)}</h2>
-  <p>${escapeHtml(block.content.subtitle)}</p>
-  <button>${escapeHtml(block.content.buttonText)}</button>
-</section>`;
-      case 'testimonials': {
-        const items = (block.content.testimonials ?? []).map(t => `
+  <h2>${escapeHtml((block.content as any).title)}</h2>
+  <p>${escapeHtml((block.content as any).subtitle)}</p>
+  ${(block.content as any).buttonText
+              ? `<a class="btn btn--light" href="${escapeHtml((block.content as any).buttonUrl) || '#'}">${escapeHtml(
+                (block.content as any).buttonText
+              )}</a>`
+              : ''
+            }
+</section>`.trim();
+
+        case 'testimonials': {
+          const items = ((block.content as any).testimonials ?? [])
+            .map(
+              (t: any) => `
   <div class="testimonial">
     <div class="testimonial__quote">"${escapeHtml(t.quote)}"</div>
     ${t.avatar ? `<img class="testimonial__avatar" src="${escapeHtml(t.avatar)}" alt="${escapeHtml(t.author)}"/>` : ''}
     <div class="testimonial__author">${escapeHtml(t.author)}</div>
     <div class="testimonial__role">${escapeHtml(t.role)}</div>
-  </div>`).join('');
-        return `
+  </div>`.trim()
+            )
+            .join('');
+          return `
 <section class="testimonials">
-  <h2>${escapeHtml(block.content.title)}</h2>
-  <p class="testimonials__subtitle">${escapeHtml(block.content.subtitle)}</p>
+  <h2>${escapeHtml((block.content as any).title)}</h2>
+  <p class="testimonials__subtitle">${escapeHtml((block.content as any).subtitle)}</p>
   <div class="testimonials__grid">${items}</div>
-</section>`;
-      }
-      case 'image-text':
-        return `
-<section class="imageText ${block.content.imageRight ? 'imageText--right' : ''}">
-  <div class="imageText__image"><img src="${escapeHtml(block.content.imageUrl)}" alt="${escapeHtml(block.content.imageAlt)}"/></div>
+</section>`.trim();
+        }
+
+        case 'image-text':
+          return `
+<section class="imageText ${(block.content as any).imageRight ? 'imageText--right' : ''}">
+  <div class="imageText__image"><img src="${escapeHtml((block.content as any).imageUrl)}" alt="${escapeHtml(
+            (block.content as any).imageAlt
+          )}"/></div>
   <div class="imageText__content">
-    <h2>${escapeHtml(block.content.title)}</h2>
-    <p>${escapeHtml(block.content.text)}</p>
-    ${block.content.buttonText ? `<button>${escapeHtml(block.content.buttonText)}</button>` : ''}
+    <h2>${escapeHtml((block.content as any).title)}</h2>
+    <p>${escapeHtml((block.content as any).text)}</p>
+    ${(block.content as any).buttonText
+              ? `<a class="btn" href="${escapeHtml((block.content as any).buttonUrl) || '#'}">${escapeHtml(
+                (block.content as any).buttonText
+              )}</a>`
+              : ''
+            }
   </div>
-</section>`;
-      case 'pricing': {
-        const plans = (block.content.plans ?? []).map(p => `
+</section>`.trim();
+
+        case 'pricing': {
+          const plans = ((block.content as any).plans ?? [])
+            .map(
+              (p: any) => `
   <div class="plan ${p.highlight ? 'plan--highlight' : ''}">
     <h3>${escapeHtml(p.name)}</h3>
     <div class="plan__price">${escapeHtml(p.price)}</div>
     <p class="plan__freq">${escapeHtml(p.frequency)}</p>
-    <ul class="plan__list">${(p.features ?? []).map(f => `<li>${escapeHtml(f)}</li>`).join('')}</ul>
-    <button>${escapeHtml(p.buttonText)}</button>
-  </div>`).join('');
-        return `
+    <ul class="plan__list">${(p.features ?? []).map((f: string) => `<li>${escapeHtml(f)}</li>`).join('')}</ul>
+    <a class="btn" href="${escapeHtml(p.buttonUrl) || '#'}">${escapeHtml(p.buttonText)}</a>
+  </div>`.trim()
+            )
+            .join('');
+          return `
 <section class="pricing">
-  <h2>${escapeHtml(block.content.title)}</h2>
-  <p class="pricing__subtitle">${escapeHtml(block.content.subtitle)}</p>
+  <h2>${escapeHtml((block.content as any).title)}</h2>
+  <p class="pricing__subtitle">${escapeHtml((block.content as any).subtitle)}</p>
   <div class="pricing__grid">${plans}</div>
-</section>`;
-      }
-      case 'list':
-        return `
+</section>`.trim();
+        }
+
+        case 'list':
+          return `
 <section class="list">
-  <h2>${escapeHtml(block.content.title)}</h2>
-  <ul>${(block.content.items ?? []).map(i => `<li>${escapeHtml(i)}</li>`).join('')}</ul>
-</section>`;
-      case 'carousel':
-        return `
+  <h2>${escapeHtml((block.content as any).title)}</h2>
+  <ul>${(((block.content as any).items ?? []) as string[])
+              .map((i) => `<li>${escapeHtml(i)}</li>`)
+              .join('')}</ul>
+</section>`.trim();
+
+        case 'carousel':
+          return `
 <section class="carousel">
-  <h2>${escapeHtml(block.content.title)}</h2>
+  <h2>${escapeHtml((block.content as any).title)}</h2>
   <div class="carousel__container">
     <div class="carousel__track" id="track-${block.id}">
-      ${(block.content.images ?? []).map((src, i) => `<div class="carousel__slide"><img src="${escapeHtml(src)}" alt="Slide ${i+1}"/></div>`).join('')}
+      ${(((block.content as any).images ?? []) as string[])
+              .map((src, i) => `<div class="carousel__slide"><img src="${escapeHtml(src)}" alt="Slide ${i + 1}"/></div>`)
+              .join('')}
     </div>
     <button class="carousel__btn" data-carousel-id="track-${block.id}" data-direction="prev">&#10094;</button>
     <button class="carousel__btn" data-carousel-id="track-${block.id}" data-direction="next">&#10095;</button>
   </div>
-</section>`;
-      default:
-        return `<div>Bloque no reconocido</div>`;
-    }
-  }).join('\n');
+</section>`.trim();
 
-  const jsImports = blocks.some(b => b.type === 'carousel') ? '<script src="carousel.js"></script>' : '';
+        default:
+          return '';
+      }
+    })
+    .filter(Boolean)
+    .join('\n');
 
-  return `<!doctype html><html lang="es"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${escapeHtml(siteName)}</title><link rel="stylesheet" href="style.css"/></head><body>${blocksHTML}${jsImports}</body></html>`;
+  const jsImports = list.some((b) => b.type === 'carousel') ? '<script src="carousel.js"></script>' : '';
+
+  return `<!doctype html>
+<html lang="${escapeHtml(lang)}">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>${escapeHtml(siteName)}</title>
+  <link rel="stylesheet" href="./style.css"/>
+</head>
+<body>
+${blocksHTML || '<!-- Sin bloques -->'}
+${jsImports}
+</body>
+</html>`;
 };
 
-export const generateCSS = () => `
-/* Variables */
-:root{--primary:#667eea;--secondary:#764ba2;--radius:16px;--shadow:0 8px 20px rgba(0,0,0,.08)}
+// ========================= CSS =========================
+type Theme = { primary: string; secondary: string };
+export const generateCSS = (theme?: Partial<Theme>) => {
+  const primary = theme?.primary ?? '#667eea';
+  const secondary = theme?.secondary ?? '#764ba2';
+
+  return `
+:root{--primary:${primary};--secondary:${secondary};--radius:16px;--shadow:0 8px 20px rgba(0,0,0,.08)}
 body{font-family:system-ui,sans-serif;margin:0;line-height:1.6;color:#333;background:#f7f8fb}
-button{padding:1rem 1.25rem;border:0;border-radius:12px;cursor:pointer}
+a{text-decoration:none}
+.btn{display:inline-block;padding:1rem 1.25rem;border-radius:12px;color:#fff;background:linear-gradient(135deg,var(--primary),var(--secondary));box-shadow:var(--shadow)}
+.btn--light{background:#fff;color:#4c51bf}
 
 /* HERO */
-.hero{position:relative;min-height:100vh;display:grid;place-items:center;text-align:center;color:#fff;background-size:cover;background-position:center}
-.hero{background-image:var(--bg)}
+.hero{position:relative;min-height:100vh;display:grid;place-items:center;text-align:center;color:#fff;background-size:cover;background-position:center;background-image:var(--bg)}
 .hero__overlay{position:absolute;inset:0;background:rgba(0,0,0,.5)}
 .hero__content{position:relative;padding:3rem;max-width:820px}
 .hero__content h1{font-size:clamp(2rem,6vw,3.5rem);background:linear-gradient(90deg,#fff,#ddd);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .hero__content p{opacity:.9}
-.hero__content button{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;box-shadow:var(--shadow)}
 
 /* FEATURES */
 .features{padding:5rem 1rem;background:#f8fafc;text-align:center}
@@ -158,7 +227,6 @@ button{padding:1rem 1.25rem;border:0;border-radius:12px;cursor:pointer}
 
 /* CTA */
 .cta{padding:5rem 1rem;background:linear-gradient(90deg,var(--secondary),var(--primary));color:#fff;text-align:center}
-.cta button{background:#fff;color:#4c51bf}
 
 /* TESTIMONIALS */
 .testimonials{padding:5rem 1rem;background:#f8fafc;text-align:center}
@@ -169,12 +237,12 @@ button{padding:1rem 1.25rem;border:0;border-radius:12px;cursor:pointer}
 .testimonial__avatar{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--primary);margin:.75rem 0}
 
 /* IMAGE + TEXT */
-.imageText{padding:5rem 1rem;display:grid;grid-template-columns:1fr 1fr;gap:2rem;max-width:1200px;margin:0 auto}
+.imageText{padding:5rem 1rem}
+.imageText .imageText__content h2{margin-top:0}
+.imageText__image img{width:100%;border-radius:16px;box-shadow:var(--shadow)}
+.imageText{display:grid;grid-template-columns:1fr 1fr;gap:2rem;max-width:1200px;margin:0 auto}
 .imageText--right{direction:rtl}
 .imageText--right .imageText__content{direction:ltr}
-.imageText__image img{width:100%;border-radius:16px;box-shadow:var(--shadow)}
-.imageText__content h2{margin-top:0}
-.imageText__content button{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff}
 
 /* PRICING */
 .pricing{padding:5rem 1rem;background:linear-gradient(135deg,#e0f2fe,#e8eaf6);text-align:center}
@@ -204,30 +272,56 @@ button{padding:1rem 1.25rem;border:0;border-radius:12px;cursor:pointer}
 @media (max-width: 768px){
   .imageText{grid-template-columns:1fr}
 }
-`;
+`.trim();
+};
 
+// ========================= ZIP =========================
 export const downloadAsZip = async (html: string, css: string, siteName = 'mi-sitio') => {
   const zip = new JSZip();
   zip.file('index.html', html);
   zip.file('style.css', css);
 
+  // Si el HTML contiene carrusel, incluimos el JS
   if (html.includes('<script src="carousel.js"></script>')) {
-    const js = `document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('.carousel__container').forEach(c=>{const t=c.querySelector('.carousel__track');if(!t)return;const slides=Array.from(t.children);let i=0;const up=()=>{(t as HTMLElement).style.transform=\`translateX(-\${i*100}%)\`;};const id=(t as HTMLElement).id;const prev=document.querySelector(\`[data-carousel-id="\${id}"][data-direction="prev"]\`);const next=document.querySelector(\`[data-carousel-id="\${id}"][data-direction="next"]\`);prev?.addEventListener('click',()=>{i=(i-1+slides.length)%slides.length;up();});next?.addEventListener('click',()=>{i=(i+1)%slides.length;up();});});});`;
+    const js = `
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.carousel__container').forEach((container) => {
+    const track = container.querySelector('.carousel__track');
+    if (!track) return;
+    const slides = Array.from(track.children);
+    let i = 0;
+
+    const id = track.id;
+    const prev = document.querySelector(\`[data-carousel-id="\${id}"][data-direction="prev"]\`);
+    const next = document.querySelector(\`[data-carousel-id="\${id}"][data-direction="next"]\`);
+
+    const update = () => { track.style.transform = \`translateX(-\${i * 100}%)\`; };
+    prev && prev.addEventListener('click', () => { i = (i - 1 + slides.length) % slides.length; update(); });
+    next && next.addEventListener('click', () => { i = (i + 1) % slides.length; update(); });
+  });
+});
+`.trim();
     zip.file('carousel.js', js);
   }
 
   const blob = await zip.generateAsync({ type: 'blob' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = `${siteName.toLowerCase().replace(/\s+/g,'-')}.zip`;
-  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  a.href = url;
+  a.download = `${siteName.toLowerCase().replace(/\s+/g, '-')}.zip`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 };
 
-export const useExport = (siteName: string) => {
-  const exportZip = async (blocks: Block[]) => {
-    const html = generateHTML(blocks, siteName);
+export const useExport = (siteNameFromPage: string) => {
+  const lang = useSelector((s: RootState) => s.ui.lang);
+  const exportZip = async (blocks?: Block[]) => {
+    const list = Array.isArray(blocks) ? blocks : [];
+    const html = generateHTML(list, siteNameFromPage, lang);
     const css = generateCSS();
-    await downloadAsZip(html, css, siteName);
+    await downloadAsZip(html, css, siteNameFromPage);
   };
   return { exportZip };
 };

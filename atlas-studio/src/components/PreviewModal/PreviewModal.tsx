@@ -9,7 +9,7 @@ import s from './PreviewModal.module.scss';
 const PreviewModal: React.FC = () => {
   const isOpen = useSelector((st: RootState) => st.ui.showPreview);
   const siteName = useSelector((st: RootState) => st.ui.siteName);
-  const blocks = useSelector((st: RootState) => st.blocks.items);
+  const blocks = useSelector((s: RootState) => s.blocks.data) ?? [];
   const dispatch = useDispatch();
   if (!isOpen) return null;
 

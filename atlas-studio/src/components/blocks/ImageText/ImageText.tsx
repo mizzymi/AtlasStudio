@@ -9,7 +9,9 @@ const ImageText: React.FC<{ content: ImageTextContent }> = ({ content }) => (
       <div>
         <h2>{content.title ?? 'Imagen + Texto'}</h2>
         <p>{content.text ?? 'Bloque versátil para combinar imagen y texto.'}</p>
-        {content.buttonText && <button className={s.ctaBtn}>{content.buttonText}</button>}
+        {content.buttonText && (
+          <a href={content.buttonUrl || '#'} className={s.ctaBtn}>{content.buttonText}</a>
+        )}
       </div>
     </div>
   </section>

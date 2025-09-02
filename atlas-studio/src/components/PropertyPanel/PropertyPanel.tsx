@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { updateBlock } from '@/redux/slices/blocks/blocks.slice';
 import { selectblocksData } from '@/redux/slices/blocks/';
-import { selectBlock } from '@/redux/slices/UI/UI.slice';
+import { selectBlock, setTheme } from '@/redux/slices/UI/UI.slice';
 
 const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => <label className={s.label}>{children}</label>;
 
@@ -14,6 +14,7 @@ const TextArea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = (p
 const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = (props) => <select {...props} className={s.select} />;
 
 const PropertyPanel: React.FC = () => {
+  const theme = useSelector((st: RootState) => st.ui.theme);
   const dispatch = useDispatch();
   const selectedId = useSelector((st: RootState) => st.ui.selectedBlockId);
   const blocks = useSelector(selectblocksData);
@@ -32,9 +33,24 @@ const PropertyPanel: React.FC = () => {
       <div className={s.header}>
         <div>
           <div style={{ fontWeight: 700 }}>Propiedades</div>
-          <div className={s.small}>{block.type} block</div>
+          <div className={s.small}>{block ? `${block.type} block` : 'Ajustes globales'}</div>
         </div>
-        <button className={s.btn} onClick={() => dispatch(selectBlock(null))}>Cerrar</button>
+        {block && <button className={s.btn} onClick={() => dispatch(selectBlock(null))}>Cerrar</button>}
+      </div>
+
+      {/* Colores globales */}
+      <div className={s.group}>
+        <div className={s.label}>Colores del sitio</div>
+        <div className={s.row}>
+          <div style={{ flex: 1 }}>
+            <div className={s.small}>Primario</div>
+            <input type="color" className={s.input} value={theme.primary} onChange={e => dispatch(setTheme({ primary: e.target.value }))} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div className={s.small}>Secundario</div>
+            <input type="color" className={s.input} value={theme.secondary} onChange={e => dispatch(setTheme({ secondary: e.target.value }))} />
+          </div>
+        </div>
       </div>
 
       {/* HERO */}
@@ -46,6 +62,8 @@ const PropertyPanel: React.FC = () => {
           <TextArea rows={3} value={block.content.subtitle ?? ''} onChange={e => apply({ ...block.content, subtitle: e.target.value })} />
           <Label>Botón</Label>
           <Field value={block.content.buttonText ?? ''} onChange={e => apply({ ...block.content, buttonText: e.target.value })} />
+          <Label>URL del botón</Label>
+          <Field value={block.content.buttonUrl ?? ''} onChange={e => apply({ ...block.content, buttonUrl: e.target.value })} />
           <Label>Fondo (URL)</Label>
           <Field value={block.content.backgroundImage ?? ''} onChange={e => apply({ ...block.content, backgroundImage: e.target.value })} />
         </div>
@@ -68,12 +86,27 @@ const PropertyPanel: React.FC = () => {
               <div key={i} className={s.itemCard}>
                 <Field placeholder="Título" value={f.title} onChange={e => apply({ ...c, features: updateArray(c.features, i, { title: e.target.value }) })} />
                 <TextArea rows={2} placeholder="Descripción" value={f.description} onChange={e => apply({ ...c, features: updateArray(c.features, i, { description: e.target.value }) })} />
-                <Select value={f.icon} onChange={e => apply({ ...c, features: updateArray(c.features, i, { icon: e.target.value as any }) })}>
+                <Select
+                  value={f.icon}
+                  onChange={e =>
+                    apply({ ...c, features: updateArray(c.features, i, { icon: e.target.value as any }) })
+                  }
+                >
                   <option value="star">⭐ Estrella</option>
                   <option value="rocket">🚀 Cohete</option>
                   <option value="shield">🛡️ Escudo</option>
                   <option value="users">👥 Usuarios</option>
+                  <option value="mail">✉️ Correo</option>
+                  <option value="user">👤 Usuario</option>
+                  <option value="quote">❝ Cita</option>
+                  <option value="image">🖼️ Imagen</option>
+                  <option value="dollar-sign">💲 Dinero</option>
+                  <option value="check">✔️ Check</option>
+                  <option value="list">📋 Lista</option>
+                  <option value="arrow-left">⬅️ Flecha izq.</option>
+                  <option value="arrow-right">➡️ Flecha der.</option>
                 </Select>
+
                 <div className={s.row}>
                   <button className={`${s.btn} ${s.remove}`} onClick={() => apply({ ...c, features: (c.features ?? []).filter((_, x) => x !== i) })}>Eliminar</button>
                 </div>
@@ -112,6 +145,8 @@ const PropertyPanel: React.FC = () => {
           <Field value={block.content.subtitle ?? ''} onChange={e => apply({ ...block.content, subtitle: e.target.value })} />
           <Label>Botón</Label>
           <Field value={block.content.buttonText ?? ''} onChange={e => apply({ ...block.content, buttonText: e.target.value })} />
+          <Label>URL del botón</Label>
+          <Field value={block.content.buttonUrl ?? ''} onChange={e => apply({ ...block.content, buttonUrl: e.target.value })} />
         </div>
       )}
 
@@ -154,6 +189,8 @@ const PropertyPanel: React.FC = () => {
           <Field value={block.content.imageAlt ?? ''} onChange={e => apply({ ...block.content, imageAlt: e.target.value })} />
           <Label>Texto Botón (opcional)</Label>
           <Field value={block.content.buttonText ?? ''} onChange={e => apply({ ...block.content, buttonText: e.target.value })} />
+          <Label>URL del botón</Label>
+          <Field value={block.content.buttonUrl ?? ''} onChange={e => apply({ ...block.content, buttonUrl: e.target.value })} />
           <div><input id="imgRight" type="checkbox" checked={!!block.content.imageRight} onChange={e => apply({ ...block.content, imageRight: e.target.checked })} /> <label htmlFor="imgRight">Imagen a la derecha</label></div>
         </div>
       )}
@@ -174,11 +211,10 @@ const PropertyPanel: React.FC = () => {
             {(c.plans ?? []).map((p, i) => (
               <div key={i} className={s.itemCard}>
                 <Field placeholder="Nombre" value={p.name} onChange={e => apply({ ...c, plans: updateArray(c.plans, i, { name: e.target.value }) })} />
-                <div className={s.row}>
-                  <Field placeholder="Precio" value={p.price} onChange={e => apply({ ...c, plans: updateArray(c.plans, i, { price: e.target.value }) })} />
-                  <Field placeholder="Frecuencia" value={p.frequency} onChange={e => apply({ ...c, plans: updateArray(c.plans, i, { frequency: e.target.value }) })} />
-                </div>
+                <Field placeholder="Precio" value={p.price} onChange={e => apply({ ...c, plans: updateArray(c.plans, i, { price: e.target.value }) })} />
+                <Field placeholder="Frecuencia" value={p.frequency} onChange={e => apply({ ...c, plans: updateArray(c.plans, i, { frequency: e.target.value }) })} />
                 <Field placeholder="Texto del botón" value={p.buttonText} onChange={e => apply({ ...c, plans: updateArray(c.plans, i, { buttonText: e.target.value }) })} />
+                <Field placeholder="URL del botón" value={p.buttonUrl ?? ''} onChange={e => apply({ ...c, plans: updateArray(c.plans, i, { buttonUrl: e.target.value }) })} />
                 <div><input id={`hl-${i}`} type="checkbox" checked={!!p.highlight} onChange={e => apply({ ...c, plans: updateArray(c.plans, i, { highlight: e.target.checked }) })} /> <label htmlFor={`hl-${i}`}>Resaltar</label></div>
                 <div className={s.row} style={{ justifyContent: 'space-between', alignItems: 'center' }}>
                   <div className={s.small}>Características</div>

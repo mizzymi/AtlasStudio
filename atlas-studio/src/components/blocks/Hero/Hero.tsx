@@ -14,9 +14,15 @@ const Hero: React.FC<{ content: HeroContent }> = ({ content }) => (
       <motion.p initial={{y:20,opacity:0}} animate={{y:0,opacity:1}} transition={{delay:.1,duration:.6}}>
         {content.subtitle ?? 'Subtítulo descriptivo'}
       </motion.p>
-      <motion.button className={s.ctaBtn} initial={{y:20,opacity:0}} animate={{y:0,opacity:1}} transition={{delay:.2,duration:.6}}>
-        {content.buttonText ?? 'Comenzar'}
-      </motion.button>
+      {content.buttonText && (
+        <motion.a
+          href={content.buttonUrl || '#'}
+          className={s.ctaBtn}
+          initial={{y:20,opacity:0}} animate={{y:0,opacity:1}} transition={{delay:.2,duration:.6}}
+        >
+          {content.buttonText}
+        </motion.a>
+      )}
     </div>
   </section>
 );

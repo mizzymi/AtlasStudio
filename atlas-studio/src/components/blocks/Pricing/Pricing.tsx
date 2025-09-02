@@ -3,7 +3,7 @@ import s from '../blocks.module.scss';
 import type { PricingContent } from '@/types/blocks';
 
 const Pricing: React.FC<{ content: PricingContent }> = ({ content }) => (
-  <section className={s.section} style={{ background: 'linear-gradient(135deg,#e0f2fe,#e8eaf6)' }}>
+  <section className={`${s.section} ${s.pricing}`}>
     <div className={s.container}>
       <div className={s.center}>
         <h2>{content.title ?? 'Nuestros Planes'}</h2>
@@ -16,7 +16,7 @@ const Pricing: React.FC<{ content: PricingContent }> = ({ content }) => (
             <div className={s.price}>{p.price}</div>
             <div className={s.subtitle}>{p.frequency}</div>
             <ul className={s.ul}>{(p.features ?? []).map((f, j) => <li key={j}>{f}</li>)}</ul>
-            <button className={s.ctaBtn}>{p.buttonText}</button>
+            <a href={p.buttonUrl || '#'} className={s.ctaBtn}>{p.buttonText}</a>
           </div>
         ))}
       </div>

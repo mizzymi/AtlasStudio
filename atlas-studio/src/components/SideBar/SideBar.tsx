@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, FileText, Plus } from 'lucide-react';
+import { LayoutDashboard, FileText, Plus, Puzzle } from 'lucide-react';
 import { blockCatalog, defaultTemplates } from '@/utils/templates';
 import s from './Sidebar.module.scss';
 import type { BlockType } from '@/types/blocks';
@@ -12,6 +12,7 @@ interface Props {
 }
 
 const Sidebar: React.FC<Props> = ({ onAddBlock, activeTab, onTabChange, onApplyTemplate }) => {
+  const Icon = Puzzle;
   return (
     <aside className={s.sidebar}>
       <div className={s.header}>
@@ -28,7 +29,7 @@ const Sidebar: React.FC<Props> = ({ onAddBlock, activeTab, onTabChange, onApplyT
           <div style={{ display: 'grid', gap: '.75rem' }}>
             {blockCatalog.map(b => (
               <button key={b.type} className={s.blockBtn} onClick={() => onAddBlock(b.type)}>
-                <div style={{ padding: '.4rem', background: '#fff', borderRadius: 8, boxShadow: '0 1px 2px rgba(0,0,0,.06)' }}>🧩</div>
+                <div style={{ padding: '.4rem', background: '#fff', borderRadius: 8, boxShadow: '0 1px 2px rgba(0,0,0,.06)' }}><Icon size={20} /></div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 600 }}>{b.name}</div>
                   <div style={{ fontSize: 12, color: '#6b7280' }}>{b.type}</div>
@@ -43,7 +44,7 @@ const Sidebar: React.FC<Props> = ({ onAddBlock, activeTab, onTabChange, onApplyT
       {activeTab === 'templates' && (
         <div className={s.section}>
           <h4>Plantillas</h4>
-          <div style={{ display: 'grid', gap: '.75rem' }}>
+          <div className={s.grid}>
             {defaultTemplates.map(t => (
               <div key={t.id} className={s.card} onClick={() => onApplyTemplate(t.blocks)}>
                 <div className={s.preview}>{t.preview && <img src={t.preview} alt={t.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}</div>
