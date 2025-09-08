@@ -13,6 +13,7 @@ const initialState: blocksState = {
   data: [],
   loading: false,
   error: null,
+  items: [],
 }
 
 export const blocksSlice = createSlice({

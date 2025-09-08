@@ -9,5 +9,14 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  css: { modules: { localsConvention: 'camelCase' } },
+  css: {
+    modules: {
+      localsConvention: 'dashesOnly'
+    },
+    preprocessorOptions: {
+      scss: {
+        additionalData: `@use "src/styles/variables" as *;`
+      }
+    },
+  }
 });
