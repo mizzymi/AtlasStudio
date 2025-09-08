@@ -8,7 +8,7 @@ import { RootState } from '@/redux/store';
 import { setSidebarTab, setShowPreview, setShowSettings } from '@/redux/slices/UI/UI.slice';
 import { addBlock } from '@/redux/slices/blocks/blocks.slice';
 import type { Block } from '@/types/blocks';
-import { useExport } from '@/hooks/useExport/useExport';
+import { useExportReact } from '@/hooks/useExportReact/useExportReact';
 import { useUniqueId } from '@/hooks/useUniqueId/useUniqueId';
 import Sidebar from '@/components/SideBar/SideBar';
 import SettingsModal from '@/components/SettingsModal/SettingsModal';
@@ -33,11 +33,11 @@ const BuilderPage: React.FC = () => {
   const { generate } = useUniqueId();
   const tab = useSelector((s: RootState) => s.ui.sidebarTab);
   const siteName = useSelector((s: RootState) => s.ui.siteName);
-  const blocks = useSelector((s: RootState) => s.blocks.items);
+  const blocks = useSelector((s: RootState) => s.blocks.data);
   const theme = useSelector((s: RootState) => s.ui.theme);
+  const lang = useSelector((s: RootState) => s.ui.lang);
   const themeVars = { '--primary': theme.primary, '--secondary': theme.secondary } as React.CSSProperties;
-  const { exportZip } = useExport(siteName);
-
+  const { exportReactAppZip } = useExportReact(siteName);
   const onAddBlock = useCallback((type: Block['type']) => {
     const block: Block = { id: generate(), type, content: defaultContentFor(type) } as Block;
     dispatch(addBlock(block));
@@ -49,7 +49,10 @@ const BuilderPage: React.FC = () => {
       <TopBar
         siteName={siteName}
         onPreview={() => dispatch(setShowPreview(true))}
-        onExport={() => exportZip(blocks)}
+        onExport={() => {
+          console.log('Exportando bloques:', Array.isArray(blocks), blocks?.length, blocks);
+          exportReactAppZip(blocks, lang, theme);
+        }}
         onSettings={() => dispatch(setShowSettings(true))}
       />
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
