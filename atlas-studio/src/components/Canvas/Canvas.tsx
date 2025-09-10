@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import type { Block } from '@/types/blocks'; // ⟵ agrega esto
 import { RootState } from '@/redux/store';
 import { moveBlock, deleteBlock } from '@/redux/slices/blocks/blocks.slice';
-import { selectBlock } from '@/redux/slices/UI/UI.slice';
+import { selectBlock, setPanelOpen } from '@/redux/slices/UI/UI.slice';
 import { ArrowUp, ArrowDown, Edit, Trash } from 'lucide-react';
 import BlockRenderer from '@/components/BlockRenderer/BlockRenderer';
 import s from './Canvas.module.scss';
@@ -28,7 +28,7 @@ const Canvas: React.FC = () => {
   return (
     <div className={s.canvas}>
       <div className={s.inner}>
-        {blocks.map((block: Block, i: number) => ( 
+        {blocks.map((block: Block, i: number) => (
           <div
             key={block.id}
             className={`${s.blockWrap} ${selectedId === block.id ? 'selected' : ''}`}
@@ -46,7 +46,7 @@ const Canvas: React.FC = () => {
                   <ArrowDown size={16} />
                 </button>
               )}
-              <button className={s.toolBtn} onClick={(e) => { e.stopPropagation(); dispatch(selectBlock(block.id)); }}>
+              <button className={s.toolBtn} onClick={(e) => { e.stopPropagation(); dispatch(selectBlock(block.id)); dispatch(setPanelOpen(true)); }}>
                 <Edit size={16} />
               </button>
               <button className={s.toolBtn} onClick={(e) => { e.stopPropagation(); dispatch(deleteBlock(block.id)); }}>

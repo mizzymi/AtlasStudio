@@ -3,6 +3,8 @@ import { LayoutDashboard, FileText, Plus, Puzzle } from 'lucide-react';
 import { blockCatalog, defaultTemplates } from '@/utils/templates';
 import s from './Sidebar.module.scss';
 import type { BlockType } from '@/types/blocks';
+import { useDispatch } from 'react-redux';
+import { setSidebarOpen } from '@/redux/slices/UI/UI.slice';
 
 interface Props {
   onAddBlock: (type: BlockType) => void;
@@ -13,10 +15,21 @@ interface Props {
 
 const Sidebar: React.FC<Props> = ({ onAddBlock, activeTab, onTabChange, onApplyTemplate }) => {
   const Icon = Puzzle;
+  const dispatch = useDispatch()
   return (
     <aside className={s.sidebar}>
       <div className={s.header}>
-        <h2>Atlas Studio</h2>
+        <div className={s.flex}>
+          <h2>Atlas Studio</h2>
+          <button
+            className={s.btn}
+            onClick={() => {
+              dispatch(setSidebarOpen(false));
+            }}
+          >
+            Cerrar
+          </button>
+        </div>
         <div className={s.tabs}>
           <button className={`${s.tab} ${activeTab === 'blocks' ? s.tabActive : ''}`} onClick={() => onTabChange('blocks')}><LayoutDashboard size={16} /> Bloques</button>
           <button className={`${s.tab} ${activeTab === 'templates' ? s.tabActive : ''}`} onClick={() => onTabChange('templates')}><FileText size={16} /> Plantillas</button>

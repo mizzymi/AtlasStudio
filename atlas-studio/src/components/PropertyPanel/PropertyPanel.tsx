@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { updateBlock } from '@/redux/slices/blocks/blocks.slice';
 import { selectblocksData } from '@/redux/slices/blocks/';
-import { selectBlock, setTheme } from '@/redux/slices/UI/UI.slice';
+import { selectBlock, setPanelOpen, setTheme } from '@/redux/slices/UI/UI.slice';
 
 const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => <label className={s.label}>{children}</label>;
 
@@ -35,7 +35,18 @@ const PropertyPanel: React.FC = () => {
           <div style={{ fontWeight: 700 }}>Propiedades</div>
           <div className={s.small}>{block ? `${block.type} block` : 'Ajustes globales'}</div>
         </div>
-        {block && <button className={s.btn} onClick={() => dispatch(selectBlock(null))}>Cerrar</button>}
+        {block && (
+          <button
+            className={s.btn}
+            onClick={() => {
+              dispatch(selectBlock(null));
+              dispatch(setPanelOpen(false));
+            }}
+          >
+            Cerrar
+          </button>
+        )}
+
       </div>
 
       {/* Colores globales */}

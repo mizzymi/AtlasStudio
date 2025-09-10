@@ -1,49 +1,196 @@
-@use "@/styles/variables" as *;
-@use "@/styles/mixins" as *;
+$h: 56px;
+$h-lg: 64px;
+
+@mixin desktop {
+  @media (min-width: 1024px) {
+    @content;
+  }
+}
+
+.actions {
+  display: none;
+  align-items: center;
+  gap: 8px;
+
+  @include desktop {
+    display: flex;
+  }
+}
+
+.hamburger {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin-right: 0.4rem;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #fff;
+  cursor: pointer;
+
+  @include desktop {
+    display: none;
+  }
+}
+
+.mobileMenu {
+  position: absolute;
+  z-index: 100;
+  right: 8px;
+  top: calc(#{$h} - 6px);
+  min-width: 220px;
+  background: #fff;
+  color: #111;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+  padding: 6px;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+
+  @include desktop {
+    display: none;
+  }
+
+  &.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+}
+
+.mobileItem {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 500;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.04);
+  }
+}
 
 .topbar {
-  height: 64px;
-  background: #fff;
-  border-bottom: 1px solid #e5e7eb;
+  height: $h;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1rem;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.98),
+    rgba(216, 228, 255, 0.92)
+  );
+  border-bottom: 1px solid #ffffff;
+  z-index: 5;
+  @include desktop {
+    height: $h-lg;
+    padding: 0 16px;
+  }
 }
+
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 10px;
+  margin-left: 0.4rem;
+  min-width: 0;
 }
+
 .badge {
   width: 32px;
   height: 32px;
   border-radius: 10px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, $primary, $secondary);
-  color: #fff;
+  background: var(--primary, #667eea);
+  color: white;
 }
-.actions {
-  display: flex;
-  gap: 0.5rem;
+
+.siteName {
+  line-height: 1.1;
+  font-size: 14px;
+
+  @include desktop {
+    font-size: 15px;
+  }
 }
-.button {
-  @include btn;
-  background: #f3f4f6;
-}
-.buttonPrimary {
-  @include btn;
-  background: #22c55e;
-  color: #fff;
-}
-.iconBtn {
-  @include btn;
-  padding: 0.5rem;
-  background: transparent;
-}
+
 .subtitle {
-  font-size: 0.7rem;
-  color: #6b7280;
-  margin-top: -0.25rem;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.ghost {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  background: #fff;
+  color: #111;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.05s ease, background 0.2s ease;
+  &:active {
+    transform: translateY(1px);
+  }
+  @include desktop {
+    display: none;
+  }
+}
+
+.button,
+.buttonPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: transform 0.05s ease, filter 0.2s ease;
+
+  svg {
+    flex: 0 0 auto;
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+.button {
+  background: #fff;
+  color: #111;
+}
+
+.buttonPrimary {
+  background: var(--primary, #667eea);
+  color: #fff;
+  border-color: transparent;
+}
+
+.iconBtn {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #fff;
+  cursor: pointer;
+}
+
+.hiddenSm {
+  display: none;
+
+  @include desktop {
+    display: inline;
+  }
 }

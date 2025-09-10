@@ -367,6 +367,9 @@ a {
 .imageText--right .imageText__content {
   direction: ltr;
 }
+.pricing{
+  background: color-mix(in srgb, var(--secondary) 20%, transparent);
+}
 .pricing__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -523,7 +526,7 @@ export default TextBlock
 const contactTsx = `import React from 'react'
 import type { ContactContent } from '@/types'
 const Contact: React.FC<{ content: ContactContent }> = ({ content }) => (
-  <section className="section" style={{ background: 'linear-gradient(135deg,#e0f2fe,#e8eaf6)' }}>
+  <section className="section pricing">
     <div className="container center">
       <h2>{content.title}</h2>
       {content.subtitle && <p className="subtitle">{content.subtitle}</p>}
@@ -596,7 +599,7 @@ export default ImageText
 const pricingTsx = `import React from 'react'
 import type { PricingContent } from '@/types'
 const Pricing: React.FC<{ content: PricingContent }> = ({ content }) => (
-  <section className="section" style={{ background: 'linear-gradient(135deg,#e0f2fe,#e8eaf6)' }}>
+  <section className="section pricing">
     <div className="container center">
       <h2>{content.title}</h2>
       {content.subtitle && <p className="subtitle">{content.subtitle}</p>}

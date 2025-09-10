@@ -12,6 +12,7 @@ import { useExportReact } from '@/hooks/useExportReact/useExportReact';
 import { useUniqueId } from '@/hooks/useUniqueId/useUniqueId';
 import Sidebar from '@/components/SideBar/SideBar';
 import SettingsModal from '@/components/SettingsModal/SettingsModal';
+import s from './BuilderPage.module.scss';
 
 const defaultContentFor = (type: Block['type']): any => {
   switch (type) {
@@ -42,10 +43,10 @@ const BuilderPage: React.FC = () => {
     const block: Block = { id: generate(), type, content: defaultContentFor(type) } as Block;
     dispatch(addBlock(block));
   }, [dispatch, generate]);
+  const isSidebarOpen = useSelector((s: RootState) => s.ui.sidebarOpen); 
+  const isPanelOpen = useSelector((s: RootState) => s.ui.panelOpen);     
   return (
-    <div
-      style={{ display: 'flex', flexDirection: 'column', height: '100vh', ...themeVars } as React.CSSProperties}
-    >
+    <div className={s.builder} style={themeVars as React.CSSProperties}>
       <TopBar
         siteName={siteName}
         onPreview={() => dispatch(setShowPreview(true))}
@@ -55,13 +56,28 @@ const BuilderPage: React.FC = () => {
         }}
         onSettings={() => dispatch(setShowSettings(true))}
       />
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <Sidebar onAddBlock={onAddBlock} activeTab={tab} onTabChange={(t) => dispatch(setSidebarTab(t))} onApplyTemplate={(tpl) => {
-          tpl.forEach((b: any) => onAddBlock(b.type));
-        }} />
-        <Canvas />
-        <PropertyPanel />
+
+      <div className={s.builderMain}>
+        <div className={`${s.builderSidebar} ${isSidebarOpen ? s.isOpen : ''}`}>
+          <Sidebar
+            onAddBlock={onAddBlock}
+            activeTab={tab}
+            onTabChange={(t) => dispatch(setSidebarTab(t))}
+            onApplyTemplate={(tpl) => {
+              tpl.forEach((b: any) => onAddBlock(b.type));
+            }}
+          />
+        </div>
+
+        <div className={s.builderCanvas}>
+          <Canvas />
+        </div>
+
+        <div className={`${s.builderPanel} ${isPanelOpen ? s.isOpen : ''}`}>
+          <PropertyPanel />
+        </div>
       </div>
+
       <PreviewModal />
       <SettingsModal />
     </div>

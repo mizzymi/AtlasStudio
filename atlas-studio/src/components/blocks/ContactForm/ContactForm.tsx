@@ -3,7 +3,7 @@ import s from '../blocks.module.scss';
 import type { ContactContent } from '@/types/blocks';
 
 const ContactForm: React.FC<{ content: ContactContent }> = ({ content }) => (
-  <section className={s.section} style={{ background: 'linear-gradient(135deg,#e0f2fe,#e8eaf6)' }}>
+  <section className={`${s.section} ${s.pricing}`}>
     <div className={`${s.container} ${s.center}`}>
       <h2>{content.title ?? 'Contáctanos'}</h2>
       {content.subtitle && <p className={s.subtitle}>{content.subtitle}</p>}

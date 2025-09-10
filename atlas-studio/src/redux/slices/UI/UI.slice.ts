@@ -4,6 +4,8 @@ export type UILang =
   | 'es' | 'en' | 'pt' | 'fr' | 'de' | 'it' | 'nl' | 'pl' | 'ja' | 'zh' | 'ar';
 
 export interface UIState {
+  panelOpen: boolean;
+  sidebarOpen: boolean;
   selectedBlockId: string | null;
   sidebarTab: 'blocks' | 'templates';
   showPreview: boolean;
@@ -15,6 +17,8 @@ export interface UIState {
 
 const initialState: UIState = {
   selectedBlockId: null,
+  sidebarOpen: false,
+  panelOpen: false,
   sidebarTab: 'blocks',
   showPreview: false,
   siteName: 'Mi Sitio Web',
@@ -48,6 +52,18 @@ const uiSlice = createSlice({
     setShowSettings(state, action: PayloadAction<boolean>) {
       state.showSettings = action.payload;
     },
+    setSidebarOpen(state, action: PayloadAction<boolean>) {
+      state.sidebarOpen = action.payload;
+    },
+    setPanelOpen(state, action: PayloadAction<boolean>) {
+      state.panelOpen = action.payload;
+    },
+    toggleSidebar(state) {
+      state.sidebarOpen = !state.sidebarOpen;
+    },
+    togglePanel(state) {
+      state.panelOpen = !state.panelOpen;
+    },
     reset() {
       return initialState;
     },
@@ -63,6 +79,10 @@ export const {
   setLang,
   setShowSettings,
   reset,
+  setSidebarOpen,    
+  setPanelOpen,       
+  toggleSidebar,    
+  togglePanel, 
 } = uiSlice.actions;
 
 export default uiSlice.reducer;
