@@ -19,6 +19,9 @@
   background: #3b82f6;
   color: #fff;
   cursor: pointer;
+  @media (min-width: 1024px) {
+    display: none;
+  }
 }
 .flex{
   display: flex;

@@ -108,7 +108,7 @@ $h-lg: 64px;
   border-radius: 10px;
   display: grid;
   place-items: center;
-  background: var(--primary, #667eea);
+  background: #667eea;
   color: white;
 }
 
@@ -171,7 +171,7 @@ $h-lg: 64px;
 }
 
 .buttonPrimary {
-  background: var(--primary, #667eea);
+  background: #667eea;
   color: #fff;
   border-color: transparent;
 }

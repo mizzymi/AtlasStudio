@@ -2,10 +2,11 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import type { Block } from '@/types/blocks';
 
-const esc = (s: string) =>
-  s.replace(/\\/g, '\\\\').replace(/`/g, '\\`');
+// Helpers para “literalizar” valores
+const lit = (s: unknown) => JSON.stringify(s ?? '');
+const escAttr = (s: unknown) => String(s ?? '').replace(/`/g, '\\`');
 
-// ---------- Plantillas base del proyecto ----------
+// ---------- package.json ----------
 const pkgJson = (appName: string, used: Array<Block['type']>) => `{
   "name": "${appName}",
   "private": true,
@@ -18,7 +19,6 @@ const pkgJson = (appName: string, used: Array<Block['type']>) => `{
   },
   "dependencies": {
     "@reduxjs/toolkit": "2.2.5",
-    "@types/file-saver": "^2.0.7",
     ${used.includes('features') ? `"lucide-react": "^0.542.0",` : ""}
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -38,6 +38,7 @@ const pkgJson = (appName: string, used: Array<Block['type']>) => `{
   }
 }`;
 
+// ---------- tsconfig ----------
 const tsconfig = `{
   "compilerOptions": {
     "target": "ES2020",
@@ -50,25 +51,20 @@ const tsconfig = `{
     "isolatedModules": true,
     "noEmit": true,
     "strict": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
     "skipLibCheck": true,
     "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    }
+    "paths": { "@/*": ["src/*"] }
   },
   "include": ["src"]
 }`;
 
+// ---------- vite.config ----------
 const viteConfig = `import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-export default defineConfig({
-  plugins: [react()],
-  server: { port: 5173 }
-})
+export default defineConfig({ plugins: [react()], server: { port: 5173 } })
 `;
 
+// ---------- index.html ----------
 const indexHtml = (siteName: string) => `<!doctype html>
 <html lang="es">
 <head>
@@ -78,196 +74,36 @@ const indexHtml = (siteName: string) => `<!doctype html>
 </head>
 <body>
   <div id="root"></div>
-  <script type="module" src="/src/preloaded-state.js"></script>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>`;
 
+// ---------- main.tsx ----------
 const mainTsx = `import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { Provider } from 'react-redux'
-import { store } from './redux/store'
 import App from './App'
 import './styles/global.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <Provider store={store}>
-      <App />
-    </Provider>
-  </React.StrictMode>
+  <React.StrictMode><App /></React.StrictMode>
 )
 `;
 
+// ---------- App.tsx ----------
 const appTsx = `import React from 'react'
 import Home from './pages/Home/Home'
 const App: React.FC = () => <Home />
 export default App
 `;
 
-// ---------- Redux ----------
-const storeTs = `import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import uiReducer from './slices/ui.slice';
-import blocksReducer from './slices/blocks.slice';
-
-const rootReducer = combineReducers({
-  ui: uiReducer,
-  blocks: blocksReducer,
-});
-
-export type RootState = ReturnType<typeof rootReducer>;
-export type AppDispatch = ReturnType<typeof makeStore> extends { dispatch: infer D } ? D : never;
-
-export const makeStore = (preloaded?: Partial<RootState>) =>
-  configureStore({
-    reducer: rootReducer,
-    preloadedState: preloaded as RootState | undefined,
-    devTools: true,
-  });
-
-declare global {
-  interface Window { __PRELOADED_STATE__?: Partial<RootState> }
-}
-
-export const store = makeStore(window.__PRELOADED_STATE__);
-export type Store = typeof store;
-export type AppGetState = () => RootState;
-`;
-
-const uiSlice = `import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-
-export type Theme = { primary: string; secondary: string }
-type UIState = { lang: string; siteName: string; theme: Theme }
-
-const initialState: UIState = {
-  lang: 'es',
-  siteName: 'Mi Sitio',
-  theme: { primary: '#667eea', secondary: '#764ba2' }
-}
-
-const uiSlice = createSlice({
-  name: 'ui',
-  initialState,
-  reducers: {
-    setLang: (s, a: PayloadAction<string>) => { s.lang = a.payload },
-    setSiteName: (s, a: PayloadAction<string>) => { s.siteName = a.payload },
-    setTheme: (s, a: PayloadAction<Theme>) => { s.theme = a.payload }
-  }
-})
-
-export const { setLang, setSiteName, setTheme } = uiSlice.actions
-export default uiSlice.reducer
-`;
-
-const blocksSlice = `import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import type { Block } from '@/types'
-
-type BlocksState = { items: Block[] }
-const initialState: BlocksState = { items: [] }
-
-const slice = createSlice({
-  name: 'blocks',
-  initialState,
-  reducers: {
-    setBlocks: (s, a: PayloadAction<Block[]>) => { s.items = a.payload }
-  }
-})
-
-export const { setBlocks } = slice.actions
-export default slice.reducer
-`;
-
-// ---------- Types (FIX incluido en FeaturesContent) ----------
-const typesTs = `export type IconName = 'rocket'|'shield'|'users'|'star'|'mail'|'user'|'quote'|'image'|'dollar-sign'|'check'|'list'|'arrow-left'|'arrow-right'
-
-export type HeroContent = { title:string; subtitle?:string; buttonText?:string; buttonUrl?:string; backgroundImage?:string }
-export type FeaturesContent = { title:string; subtitle?:string; features: { icon?: IconName; title: string; description?: string }[] }
-export type TextContent = { title:string; text:string }
-export type ContactContent = { title:string; subtitle?:string }
-export type CTAContent = { title:string; subtitle?:string; buttonText?:string; buttonUrl?:string }
-export type Testimonial = { quote:string; author:string; role?:string; avatar?:string }
-export type TestimonialsContent = { title:string; subtitle?:string; testimonials: Testimonial[] }
-export type ImageTextContent = { title:string; text:string; imageUrl:string; imageAlt?:string; buttonText?:string; buttonUrl?:string; imageRight?:boolean }
-export type PricingPlan = { name:string; price:string; frequency?:string; features:string[]; buttonText?:string; buttonUrl?:string; highlight?:boolean }
-export type PricingContent = { title:string; subtitle?:string; plans: PricingPlan[] }
-export type ListContent = { title:string; items:string[] }
-export type CarouselContent = { title:string; images:string[] }
-
-export type Block =
- | { id:string; type:'hero'; content:HeroContent }
- | { id:string; type:'features'; content:FeaturesContent }
- | { id:string; type:'text'; content:TextContent }
- | { id:string; type:'contact'; content:ContactContent }
- | { id:string; type:'call-to-action'; content:CTAContent }
- | { id:string; type:'testimonials'; content:TestimonialsContent }
- | { id:string; type:'image-text'; content:ImageTextContent }
- | { id:string; type:'pricing'; content:PricingContent }
- | { id:string; type:'list'; content:ListContent }
- | { id:string; type:'carousel'; content:CarouselContent }
-`;
-
-// ---------- Página Home ----------
-const homeTsx = `import React from 'react'
-import { useSelector } from 'react-redux'
-import type { RootState } from '../../redux/store'
-import RenderBlock from '../../components/RenderBlock/RenderBlock'
-import './Home.css'
-
-const Home: React.FC = () => {
-  const { items } = useSelector((s: RootState) => s.blocks)
-  const { siteName, theme } = useSelector((s: RootState) => s.ui)
-
-  const vars: React.CSSProperties = { ['--primary' as any]: theme.primary, ['--secondary' as any]: theme.secondary }
-
-  return (
-    <main style={vars}>
-      <header className="top">
-        <h1>{siteName}</h1>
-      </header>
-      {items.length === 0 ? <p className="empty">Sin bloques</p> : items.map(b => <RenderBlock key={b.id} block={b} />)}
-      <footer className="foot">© {new Date().getFullYear()} {siteName}</footer>
-    </main>
-  )
-}
-export default Home
-`;
-
-const homeCss = `main {
-  font-family: system-ui, sans-serif;
-  color: #333;
-  background: #f7f8fb;
-}
-.top {
-  padding: 1rem 1.25rem;
-  position: sticky;
-  top: 0;
-  background: #fff;
-  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
-  z-index: 10;
-}
-.top h1 {
-  margin: 0;
-  font-size: 1.1rem;
-}
-.foot {
-  text-align: center;
-  padding: 2rem 1rem;
-  color: #777;
-}
-.empty {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: #777;
-}
-`;
-
-// ---------- Estilos globales ----------
+// ---------- Global CSS ----------
 const globalCss = `
 :root {
   --primary: #667eea;
   --secondary: #764ba2;
   --radius: 16px;
   --shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  scroll-behavior: smooth;
 }
 a {
   text-decoration: none;
@@ -367,7 +203,7 @@ a {
 .imageText--right .imageText__content {
   direction: ltr;
 }
-.pricing{
+.pricing {
   background: color-mix(in srgb, var(--secondary) 20%, transparent);
 }
 .pricing__grid {
@@ -444,92 +280,126 @@ a {
 }
 `.trim();
 
-// ---------- Componentes por bloque ----------
-const heroTsx = `import React from 'react'
-import type { HeroContent } from '@/types'
-const Hero: React.FC<{ content: HeroContent }> = ({ content }) => (
-  <section className="hero" style={{ backgroundImage: \`url('\${content.backgroundImage ?? ''}')\` }}>
+// ---------- Plantillas por bloque (contenido incrustado) ----------
+const fileNameFor = (type: Block['type'], index: number) => {
+  const base = {
+    'hero': 'Hero',
+    'features': 'Features',
+    'text': 'TextBlock',
+    'contact': 'Contact',
+    'call-to-action': 'CTA',
+    'testimonials': 'Testimonials',
+    'image-text': 'ImageText',
+    'pricing': 'Pricing',
+    'list': 'ListBlock',
+    'carousel': 'Carousel',
+  }[type];
+  return index === 0 ? `${base}.tsx` : `${base}_${index + 1}.tsx`;
+};
+
+const heroInline = (c: any) => `import React from 'react'
+const Hero: React.FC = () => (
+  <section className="hero" style={{ backgroundImage: \`url('${escAttr(c.backgroundImage ?? '')}')\` }}>
     <div className="hero__overlay"></div>
     <div className="hero__content">
-      <h1>{content.title}</h1>
-      {content.subtitle && <p>{content.subtitle}</p>}
-      {content.buttonText && <a className="btn" href={content.buttonUrl || '#'}>{content.buttonText}</a>}
+      <h1>${escAttr(c.title ?? '')}</h1>
+      ${c.subtitle ? `<p>${escAttr(c.subtitle)}</p>` : ''}
+      ${c.buttonText ? `<a className="btn" href="${escAttr(c.buttonUrl || '#')}">${escAttr(c.buttonText)}</a>` : ''}
     </div>
   </section>
 )
 export default Hero
 `;
 
-const featuresTsx = `import React from 'react';
-import type { FeaturesContent, IconName } from '@/types';
-import {
-  Rocket, Shield, Users, Star, Mail, User, Quote,
-  Image as ImageIcon, DollarSign, Check, List, ArrowLeft, ArrowRight,
-} from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+const featuresInline = (c: any) => {
+  type IconKey =
+    | 'rocket' | 'shield' | 'users' | 'star' | 'mail' | 'user' | 'quote'
+    | 'image' | 'dollar-sign' | 'check' | 'list' | 'arrow-left' | 'arrow-right';
 
-const ICONS: Record<IconName, LucideIcon> = {
-  rocket: Rocket,
-  shield: Shield,
-  users: Users,
-  star: Star,
-  mail: Mail,
-  user: User,
-  quote: Quote,
-  image: ImageIcon,
-  'dollar-sign': DollarSign,
-  check: Check,
-  list: List,
-  'arrow-left': ArrowLeft,
-  'arrow-right': ArrowRight,
-};
+  const ICON_MAP: Record<IconKey, { import: string; local: string }> = {
+    rocket: { import: 'Rocket', local: 'Rocket' },
+    shield: { import: 'Shield', local: 'Shield' },
+    users: { import: 'Users', local: 'Users' },
+    star: { import: 'Star', local: 'Star' },
+    mail: { import: 'Mail', local: 'Mail' },
+    user: { import: 'User', local: 'User' },
+    quote: { import: 'Quote', local: 'Quote' },
+    image: { import: 'Image', local: 'LucideImage' },
+    'dollar-sign': { import: 'DollarSign', local: 'DollarSign' },
+    check: { import: 'Check', local: 'Check' },
+    list: { import: 'List', local: 'List' },
+    'arrow-left': { import: 'ArrowLeft', local: 'ArrowLeft' },
+    'arrow-right': { import: 'ArrowRight', local: 'ArrowRight' },
+  };
 
-const Features: React.FC<{ content: FeaturesContent }> = ({ content }) => (
+  const used: Array<{ import: string; local: string }> = [];
+  const add = (key?: string) => {
+    const k = (key?.toLowerCase() as IconKey) || 'star';
+    const rec = ICON_MAP[k] ?? ICON_MAP['star'];
+    if (!used.some(u => u.local === rec.local)) used.push(rec);
+    return rec.local;
+  };
+
+  const features = Array.isArray(c.features) ? c.features : [];
+  const itemJSX = features.map((f: any) => {
+    const Comp = add(f?.icon);
+    const title = (f?.title ?? '').toString().replace(/`/g, '\\`');
+    const desc = (f?.description ?? '').toString().replace(/`/g, '\\`');
+    return `
+      <div className="card" style={{ textAlign: 'center' }}>
+        <div className="featureIcon"><${Comp} size={20} /></div>
+        <h3>${title}</h3>
+        ${desc ? `<p>${desc}</p>` : ``}
+      </div>`;
+  }).join('\n');
+
+  const named = used.filter(u => u.import === u.local).map(u => u.import);
+  const aliased = used.filter(u => u.import !== u.local);
+  const aliasedStr = aliased.map(u => `${u.import} as ${u.local}`);
+
+  const importList = [...named, ...aliasedStr].join(', ') || 'Star';
+
+  const title = (c?.title ?? '').toString().replace(/`/g, '\\`');
+  const subtitle = (c?.subtitle ?? '').toString().replace(/`/g, '\\`');
+
+  return `import React from 'react'
+import { ${importList} } from 'lucide-react'
+
+const Features: React.FC = () => (
   <section className="section">
     <div className="container">
       <div className="center">
-        <h2>{content.title}</h2>
-        {content.subtitle && <p className="subtitle">{content.subtitle}</p>}
+        <h2>${title}</h2>
+        ${subtitle ? `<p className="subtitle">${subtitle}</p>` : ``}
       </div>
       <div className="grid">
-        {(content.features ?? []).map((f, i) => {
-          const Icon = f.icon ? (ICONS[f.icon] ?? Star) : Star;
-          return (
-            <div key={i} className="card" style={{ textAlign: 'center' }}>
-              <div className="featureIcon"><Icon size={20} /></div>
-              <h3>{f.title}</h3>
-              {f.description && <p>{f.description}</p>}
-            </div>
-          );
-        })}
+${itemJSX}
       </div>
     </div>
   </section>
-);
-
-export default Features;
+)
+export default Features
 `;
+};
 
-const textTsx = `import React from 'react'
-import type { TextContent } from '@/types'
-const TextBlock: React.FC<{ content: TextContent }> = ({ content }) => (
+const textInline = (c: any) => `import React from 'react'
+const TextBlock: React.FC = () => (
   <section className="section">
     <div className="container center">
-      <h2>{content.title}</h2>
-      <p className="subtitle">{content.text}</p>
+      <h2>${escAttr(c.title ?? '')}</h2>
+      <p className="subtitle">${escAttr(c.text ?? '')}</p>
     </div>
   </section>
 )
 export default TextBlock
 `;
 
-const contactTsx = `import React from 'react'
-import type { ContactContent } from '@/types'
-const Contact: React.FC<{ content: ContactContent }> = ({ content }) => (
+const contactInline = (c: any) => `import React from 'react'
+const Contact: React.FC = () => (
   <section className="section pricing">
     <div className="container center">
-      <h2>{content.title}</h2>
-      {content.subtitle && <p className="subtitle">{content.subtitle}</p>}
+      <h2>${escAttr(c.title ?? '')}</h2>
+      ${c.subtitle ? `<p className="subtitle">${escAttr(c.subtitle)}</p>` : ''}
       <form style={{ maxWidth: 620, margin: '2rem auto', background:'#fff', borderRadius:16, boxShadow:'var(--shadow)', padding: '2rem', display:'flex', flexDirection:'column', gap:'1rem' }}>
         <input type="text" placeholder="Tu nombre" />
         <input type="email" placeholder="tu@email.com" />
@@ -542,53 +412,52 @@ const Contact: React.FC<{ content: ContactContent }> = ({ content }) => (
 export default Contact
 `;
 
-const ctaTsx = `import React from 'react'
-import type { CTAContent } from '@/types'
-const CTA: React.FC<{ content: CTAContent }> = ({ content }) => (
+const ctaInline = (c: any) => `import React from 'react'
+const CTA: React.FC = () => (
   <section className="section" style={{ background: 'linear-gradient(90deg,var(--secondary),var(--primary))', color:'#fff', textAlign:'center' }}>
-    <h2>{content.title}</h2>
-    {content.subtitle && <p className="subtitle" style={{ color:'#fff' }}>{content.subtitle}</p>}
-    {content.buttonText && <a className="btn btn--light" href={content.buttonUrl || '#'}>{content.buttonText}</a>}
+    <h2>${escAttr(c.title ?? '')}</h2>
+    ${c.subtitle ? `<p className="subtitle" style={{ color:'#fff' }}>${escAttr(c.subtitle)}</p>` : ''}
+    ${c.buttonText ? `<a className="btn btn--light" href="${escAttr(c.buttonUrl || '#')}">${escAttr(c.buttonText)}</a>` : ''}
   </section>
 )
 export default CTA
 `;
 
-const testimonialsTsx = `import React from 'react'
-import type { TestimonialsContent } from '@/types'
-const Testimonials: React.FC<{ content: TestimonialsContent }> = ({ content }) => (
+const testimonialsInline = (c: any) => {
+  const items = (c.testimonials ?? []).map((t: any) => `
+      <div className="card" style={{ display:'flex', alignItems:'center', flexDirection:'column' }}>
+        <div style={{ fontStyle:'italic', color:'#555' }}>"${escAttr(t.quote ?? '')}"</div>
+        ${t.avatar ? `<img src="${escAttr(t.avatar)}" alt="${escAttr(t.author ?? '')}" style={{ width:80, height:80, borderRadius:'50%', objectFit:'cover', border:'3px solid var(--primary)', margin:'.75rem 0' }} />` : ''}
+        <div style={{ fontWeight:600 }}>${escAttr(t.author ?? '')}</div>
+        ${t.role ? `<div style={{ color:'#666' }}>${escAttr(t.role)}</div>` : ''}
+      </div>`).join('\n');
+  return `import React from 'react'
+const Testimonials: React.FC = () => (
   <section className="section" style={{ background:'#f8fafc' }}>
     <div className="container center">
-      <h2>{content.title}</h2>
-      {content.subtitle && <p className="subtitle">{content.subtitle}</p>}
+      <h2>${escAttr(c.title ?? '')}</h2>
+      ${c.subtitle ? `<p className="subtitle">${escAttr(c.subtitle)}</p>` : ''}
       <div className="grid">
-        {(content.testimonials ?? []).map((t, i) => (
-          <div key={i} className="card" style={{ display:'flex', alignItems:'center', flexDirection:'column' }}>
-            <div style={{ fontStyle:'italic', color:'#555' }}>"{t.quote}"</div>
-            {t.avatar && <img src={t.avatar} alt={t.author} style={{ width:80, height:80, borderRadius:'50%', objectFit:'cover', border:'3px solid var(--primary)', margin:'.75rem 0' }} />}
-            <div style={{ fontWeight:600 }}>{t.author}</div>
-            {t.role && <div style={{ color:'#666' }}>{t.role}</div>}
-          </div>
-        ))}
+${items}
       </div>
     </div>
   </section>
 )
 export default Testimonials
 `;
+};
 
-const imageTextTsx = `import React from 'react'
-import type { ImageTextContent } from '@/types'
-const ImageText: React.FC<{ content: ImageTextContent }> = ({ content }) => (
+const imageTextInline = (c: any) => `import React from 'react'
+const ImageText: React.FC = () => (
   <section className="section">
-    <div className={content.imageRight ? 'imageText imageText--right' : 'imageText'}>
+    <div className="${c.imageRight ? 'imageText imageText--right' : 'imageText'}">
       <div className="imageText__image">
-        <img src={content.imageUrl} alt={content.imageAlt ?? 'Imagen'} />
+        <img src="${escAttr(c.imageUrl ?? '')}" alt="${escAttr(c.imageAlt ?? 'Imagen')}" />
       </div>
       <div className="imageText__content">
-        <h2>{content.title}</h2>
-        <p className="subtitle">{content.text}</p>
-        {content.buttonText && <a className="btn" href={content.buttonUrl || '#'}>{content.buttonText}</a>}
+        <h2>${escAttr(c.title ?? '')}</h2>
+        <p className="subtitle">${escAttr(c.text ?? '')}</p>
+        ${c.buttonText ? `<a className="btn" href="${escAttr(c.buttonUrl || '#')}">${escAttr(c.buttonText)}</a>` : ''}
       </div>
     </div>
   </section>
@@ -596,42 +465,40 @@ const ImageText: React.FC<{ content: ImageTextContent }> = ({ content }) => (
 export default ImageText
 `;
 
-const pricingTsx = `import React from 'react'
-import type { PricingContent } from '@/types'
-const Pricing: React.FC<{ content: PricingContent }> = ({ content }) => (
+const pricingInline = (c: any) => {
+  const plans = (c.plans ?? []).map((p: any) => `
+        <div className="${p.highlight ? 'plan plan--highlight' : 'plan'}">
+          <h3>${escAttr(p.name ?? '')}</h3>
+          <div className="plan__price">${escAttr(p.price ?? '')}</div>
+          ${p.frequency ? `<p className="plan__freq">${escAttr(p.frequency)}</p>` : ''}
+          <ul className="plan__list">
+            ${(p.features ?? []).map((f: any) => `<li>${escAttr(f)}</li>`).join('')}
+          </ul>
+          ${p.buttonText ? `<a className="btn" href="${escAttr(p.buttonUrl || '#')}">${escAttr(p.buttonText)}</a>` : ''}
+        </div>`).join('\n');
+  return `import React from 'react'
+const Pricing: React.FC = () => (
   <section className="section pricing">
     <div className="container center">
-      <h2>{content.title}</h2>
-      {content.subtitle && <p className="subtitle">{content.subtitle}</p>}
+      <h2>${escAttr(c.title ?? '')}</h2>
+      ${c.subtitle ? `<p className="subtitle">${escAttr(c.subtitle)}</p>` : ''}
       <div className="pricing__grid">
-        {(content.plans ?? []).map((p, i) => (
-          <div key={i} className={p.highlight ? 'plan plan--highlight' : 'plan'}>
-            <h3>{p.name}</h3>
-            <div className="plan__price">{p.price}</div>
-            {p.frequency && <p className="plan__freq">{p.frequency}</p>}
-            <ul className="plan__list">
-              {(p.features ?? []).map((f, k) => <li key={k}>{f}</li>)}
-            </ul>
-            {p.buttonText && <a className="btn" href={p.buttonUrl || '#'}>{p.buttonText}</a>}
-          </div>
-        ))}
+${plans}
       </div>
     </div>
   </section>
 )
 export default Pricing
 `;
+};
 
-const listTsx = `import React from 'react'
-import type { ListContent } from '@/types'
-const ListBlock: React.FC<{ content: ListContent }> = ({ content }) => (
+const listInline = (c: any) => `import React from 'react'
+const ListBlock: React.FC = () => (
   <section className="section">
     <div className="container center">
-      <h2>{content.title}</h2>
+      <h2>${escAttr(c.title ?? '')}</h2>
       <ul style={{ listStyle:'none', padding:0, maxWidth:800, margin:'0 auto' }}>
-        {(content.items ?? []).map((i, idx) => (
-          <li key={idx} style={{ background:'#f3f4f6', borderRadius:12, padding:'1rem', margin:'.5rem 0' }}>{i}</li>
-        ))}
+        ${(c.items ?? []).map((i: any) => `<li style={{ background:'#f3f4f6', borderRadius:12, padding:'1rem', margin:'.5rem 0' }}>${escAttr(i)}</li>`).join('\n')}
       </ul>
     </div>
   </section>
@@ -639,21 +506,21 @@ const ListBlock: React.FC<{ content: ListContent }> = ({ content }) => (
 export default ListBlock
 `;
 
-const carouselTsx = `import React, { useRef, useState } from 'react'
-import type { CarouselContent } from '@/types'
-const Carousel: React.FC<{ content: CarouselContent }> = ({ content }) => {
-  const trackRef = useRef<HTMLDivElement>(null)
-  const [i, setI] = useState(0)
-  const imgs = content.images ?? []
-  const go = (dir: number) => setI((prev) => (prev + dir + imgs.length) % imgs.length)
+const carouselInline = (c: any) => `import React, { useState } from 'react'
+const Carousel: React.FC = () => {
+  const imgs = ${JSON.stringify(c.images ?? [])};
+  const [i, setI] = useState(0);
+  const go = (dir: number) => setI((prev) => (prev + dir + imgs.length) % imgs.length);
   return (
     <section className="section" style={{ background:'#f0f4f8' }}>
       <div className="container center">
-        <h2>{content.title}</h2>
+        <h2>${escAttr(c.title ?? '')}</h2>
         <div className="carousel">
-          <div ref={trackRef} className="carousel__track" style={{ transform: \`translateX(-\${i*100}%)\` }}>
+          <div className="carousel__track" style={{ transform: \`translateX(-\${i*100}%)\`, display:'flex', transition:'transform .5s ease' }}>
             {imgs.map((src, idx) => (
-              <div key={idx} className="carousel__slide"><img src={src} alt={\`Slide \${idx+1}\`} style={{ width:'100%', display:'block' }}/></div>
+              <div key={idx} className="carousel__slide">
+                <img src={src} alt={\`Slide \${idx+1}\`} style={{ width:'100%', display:'block' }}/>
+              </div>
             ))}
           </div>
           <button className="carousel__btn carousel__btn--prev" onClick={() => go(-1)}>&#10094;</button>
@@ -666,102 +533,108 @@ const Carousel: React.FC<{ content: CarouselContent }> = ({ content }) => {
 export default Carousel
 `;
 
-// ---------- RenderBlock dinámico SOLO con usados ----------
-const renderBlockTsxDynamic = (used: Array<Block['type']>) => {
-  const mapName: Record<Block['type'], string> = {
-    'hero': 'Hero',
-    'features': 'Features',
-    'text': 'TextBlock',
-    'contact': 'Contact',
-    'call-to-action': 'CTA',
-    'testimonials': 'Testimonials',
-    'image-text': 'ImageText',
-    'pricing': 'Pricing',
-    'list': 'ListBlock',
-    'carousel': 'Carousel',
-  };
-
-  const imports = used
-    .map(t => `import ${mapName[t]} from '../blocks/${mapName[t]}'`)
-    .join('\n');
-
-  const cases = used
-    .map(t => `    case '${t}': return <${mapName[t]} content={block.content}/>`).join('\n');
-
-  return `import React from 'react'
-import type { Block } from '@/types'
-${imports}
-
-const RenderBlock: React.FC<{ block: Block }> = ({ block }) => {
+// Decide plantilla según tipo
+const inlineComponentFor = (block: Block): string => {
+  const c: any = (block as any).content ?? {};
   switch (block.type) {
-${cases}
-    default: return null
+    case 'hero': return heroInline(c);
+    case 'features': return featuresInline(c);
+    case 'text': return textInline(c);
+    case 'contact': return contactInline(c);
+    case 'call-to-action': return ctaInline(c);
+    case 'testimonials': return testimonialsInline(c);
+    case 'image-text': return imageTextInline(c);
+    case 'pricing': return pricingInline(c);
+    case 'list': return listInline(c);
+    case 'carousel': return carouselInline(c);
+    default: return `import React from 'react'\nexport default () => null\n`;
   }
+};
+
+// ---------- Home.tsx (importa cada componente generado y lo renderiza) ----------
+const homeTsxInline = (siteName: string, generatedImports: string[], generatedUsages: string[]) => `import React from 'react'
+import './Home.css'
+${generatedImports.join('\n')}
+
+const Home: React.FC = () => {
+  return (
+    <main>
+      <header className="top">
+        <h1>${escAttr(siteName)}</h1>
+      </header>
+
+${generatedUsages.map(u => `      ${u}`).join('\n')}
+
+      <footer className="foot">© {new Date().getFullYear()} ${escAttr(siteName)}</footer>
+    </main>
+  )
 }
-export default RenderBlock
-`;
-};
-
-// ---------- Inyección del estado inicial (blocks, theme, lang, siteName) ----------
-const preloadStateJs = (blocks: Block[], siteName: string, lang: string, theme: { primary: string; secondary: string }) => `// src/preloaded-state.js
-window.__PRELOADED_STATE__ = {
-  ui: { lang: ${JSON.stringify(lang)}, siteName: ${JSON.stringify(siteName)}, theme: ${JSON.stringify(theme)} },
-  blocks: { items: ${JSON.stringify(blocks, null, 2)} }
-};
+export default Home
 `;
 
-// ---------- Utilidad principal ----------
+// ---------- Home.css ----------
+const homeCss = `main {
+  font-family: system-ui, sans-serif;
+  color: #333;
+  background: #f7f8fb;
+}
+.top {
+  padding: 1rem 1.25rem;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+}
+.top h1 { margin: 0; font-size: 1.1rem; }
+.foot { text-align: center; padding: 2rem 1rem; color: #777; }
+`;
+
+// ---------- Hook principal ----------
 export const useExportReact = (siteNameFromPage: string) => {
   const exportReactAppZip = async (
     blocksInput: Block[] | undefined,
-    lang: string,
-    theme: { primary: string; secondary: string }
+    _lang: string, // ya no se usa porque incrustamos contenido
+    _theme: { primary: string; secondary: string } // idem
   ) => {
-    const blocksSafe: Block[] = Array.isArray(blocksInput) ? blocksInput : [];
-    const usedTypes = Array.from(new Set(blocksSafe.map(b => b.type)));
-    const uses = (t: Block['type']) => usedTypes.includes(t);
-
     const blocks: Block[] = Array.isArray(blocksInput) ? blocksInput : [];
+    const usedTypes = Array.from(new Set(blocks.map(b => b.type)));
     const appName = siteNameFromPage.toLowerCase().replace(/[^a-z0-9-]+/g, '-');
+
     const zip = new JSZip();
 
+    // Raíz
     zip.file('package.json', pkgJson(appName, usedTypes));
     zip.file('tsconfig.json', tsconfig);
     zip.file('vite.config.ts', viteConfig);
     zip.file('index.html', indexHtml(siteNameFromPage));
 
+    // src base
     zip.file('src/main.tsx', mainTsx);
     zip.file('src/App.tsx', appTsx);
     zip.file('src/styles/global.css', globalCss);
-    zip.file('src/pages/Home/Home.tsx', homeTsx);
+
+    // Generar componentes inlined y Home
+    const blocksDir = zip.folder('src/components/blocks')!;
+
+    const imports: string[] = [];
+    const usages: string[] = [];
+
+    blocks.forEach((b, idx) => {
+      const fileName = fileNameFor(b.type, blocks.filter(x => x.type === b.type && x !== b).length ? idx : blocks.findIndex(x => x === b));
+      // Asegurar nombres únicos y ordenados por índice global
+      const baseName = fileName.replace('.tsx', '');
+      const path = `src/components/blocks/${fileName}`;
+
+      blocksDir.file(fileName, inlineComponentFor(b));
+      imports.push(`import ${baseName} from '../../components/blocks/${baseName}'`);
+      usages.push(`<${baseName} />`);
+    });
+
+    zip.file('src/pages/Home/Home.tsx', homeTsxInline(siteNameFromPage, imports, usages));
     zip.file('src/pages/Home/Home.css', homeCss);
 
-    zip.file('src/redux/store.ts', storeTs);
-    zip.folder('src/redux/slices')!.file('ui.slice.ts', uiSlice);
-    zip.folder('src/redux/slices')!.file('blocks.slice.ts', blocksSlice);
-
-    zip.file('src/types.ts', typesTs);
-
-    zip.folder('src/components/RenderBlock')!
-      .file('RenderBlock.tsx', renderBlockTsxDynamic(usedTypes));
-
-    const blocksDir = zip.folder('src/components/blocks')!;
-    if (uses('hero')) blocksDir.file('Hero.tsx', heroTsx);
-    if (uses('features')) blocksDir.file('Features.tsx', featuresTsx);
-    if (uses('text')) blocksDir.file('TextBlock.tsx', textTsx);
-    if (uses('contact')) blocksDir.file('Contact.tsx', contactTsx);
-    if (uses('call-to-action')) blocksDir.file('CTA.tsx', ctaTsx);
-    if (uses('testimonials')) blocksDir.file('Testimonials.tsx', testimonialsTsx);
-    if (uses('image-text')) blocksDir.file('ImageText.tsx', imageTextTsx);
-    if (uses('pricing')) blocksDir.file('Pricing.tsx', pricingTsx);
-    if (uses('list')) blocksDir.file('ListBlock.tsx', listTsx);
-    if (uses('carousel')) blocksDir.file('Carousel.tsx', carouselTsx);
-
-    // Estado inicial
-    zip.file('src/preloaded-state.js',
-      preloadStateJs(blocks, siteNameFromPage, lang, theme)
-    );
-
+    // Generar y descargar
     const blob = await zip.generateAsync({ type: 'blob' });
     saveAs(blob, `${appName}.zip`);
   };
